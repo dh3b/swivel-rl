@@ -13,17 +13,17 @@ VALID_DIGITAL_MODES = {"held", "pulse"}
 class CursorConfig:
     sensitivity_x: float = 1.0
     sensitivity_y: float = 1.0
-    outer_width: float = 1200.0
-    outer_height: float = 600.0
+    outer_width: float = 1800.0
+    outer_height: float = 1800.0
     recenter_rate: float = 5.0
 
 
 @dataclass
 class DeadZoneConfig:
-    inner_width: float = 160.0
-    inner_height: float = 100.0
-    outer_width: float = 1000.0
-    outer_height: float = 500.0
+    inner_width: float = 240.0
+    inner_height: float = 240.0
+    outer_width: float = 1500.0
+    outer_height: float = 1500.0
     hysteresis: float = 0.1
 
 

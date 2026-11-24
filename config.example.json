@@ -17,19 +17,19 @@
     "SHIFT",
     "HOME"
   ],
-  "log_events": true,
+  "log_events": false,
   "cursor": {
     "sensitivity_x": 1.0,
     "sensitivity_y": 1.0,
-    "outer_width": 1200.0,
-    "outer_height": 600.0,
+    "outer_width": 1800.0,
+    "outer_height": 1800.0,
     "recenter_rate": 5.0
   },
   "dead_zone": {
-    "inner_width": 160.0,
-    "inner_height": 100.0,
-    "outer_width": 1000.0,
-    "outer_height": 500.0,
+    "inner_width": 240.0,
+    "inner_height": 240.0,
+    "outer_width": 1500.0,
+    "outer_height": 1500.0,
     "hysteresis": 0.1
   },
   "response": {

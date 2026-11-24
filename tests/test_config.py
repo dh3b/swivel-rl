@@ -17,6 +17,12 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.tick_rate_hz, 120.0)
         self.assertEqual(config.digital_mode, "held")
         self.assertEqual(config.focus_debounce_ms, 150.0)
+        self.assertEqual(config.dead_zone.inner_width, 240.0)
+        self.assertEqual(config.dead_zone.inner_height, 240.0)
+        self.assertEqual(config.dead_zone.outer_width, 1500.0)
+        self.assertEqual(config.dead_zone.outer_height, 1500.0)
+        self.assertEqual(config.cursor.outer_width, 1800.0)
+        self.assertEqual(config.cursor.outer_height, 1800.0)
 
     def test_invalid_backend(self):
         with self.assertRaises(ValueError):
