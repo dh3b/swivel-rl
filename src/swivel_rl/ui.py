@@ -30,13 +30,18 @@ class ConfigWindow(tk.Tk):
         self.worker: threading.Thread | None = None
         self.vars: dict[str, tk.Variable] = {}
         self.title("swivel-rl")
-        self.geometry("760x760")
+        width = max(640, min(960, self.winfo_screenwidth() - 40))
+        height = max(480, min(680, self.winfo_screenheight() - 80))
+        self.geometry(f"{width}x{height}")
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build(config)
 
     def _build(self, config: Config) -> None:
-        root = ttk.Frame(self, padding=12)
+        root = ttk.Frame(self, padding=(12, 10))
         root.pack(fill="both", expand=True)
+        root.columnconfigure(0, weight=1)
+        root.columnconfigure(1, weight=1)
+        root.rowconfigure(0, weight=1)
 
         self.vars["backend"] = tk.StringVar(value=config.backend)
         self.vars["target_processes"] = tk.StringVar(value=",".join(config.target_processes))
@@ -60,148 +65,158 @@ class ConfigWindow(tk.Tk):
         for key, value in vars(config.keys).items():
             self.vars[f"keys.{key}"] = tk.StringVar(value=value.upper())
 
-        row = 0
-        ttk.Label(root, text="Backend").grid(row=row, column=0, sticky="w", pady=2)
+        left = ttk.LabelFrame(root, text="General", padding=8)
+        right = ttk.LabelFrame(root, text="Tuning", padding=8)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+        right.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+        for frame in (left, right):
+            frame.columnconfigure(1, weight=1)
+
+        left_row = 0
+        ttk.Label(left, text="Backend").grid(row=left_row, column=0, sticky="w", pady=2)
         ttk.Combobox(
-            root,
+            left,
             textvariable=self.vars["backend"],
             values=sorted(VALID_BACKENDS),
             state="readonly",
-            width=30,
-        ).grid(row=row, column=1, sticky="ew", pady=2)
-        row += 1
+            width=24,
+        ).grid(row=left_row, column=1, columnspan=2, sticky="ew", pady=2)
+        left_row += 1
 
-        self._entry(root, "Target processes (comma separated)", "target_processes", row, wide=True)
-        row += 1
+        self._entry(left, "Target processes (comma separated)", "target_processes", left_row, wide=True)
+        left_row += 1
 
-        ttk.Label(root, text="Mouse device path contains (blank = all mice)").grid(row=row, column=0, sticky="w", pady=2)
+        ttk.Label(left, text="Mouse device path contains (blank = all mice)").grid(
+            row=left_row, column=0, sticky="w", pady=2
+        )
         self.device_combo = ttk.Combobox(
-            root,
+            left,
             textvariable=self.vars["mouse_device_path_contains"],
             values=[config.mouse_device_path_contains],
-            width=60,
+            width=28,
         )
-        self.device_combo.grid(row=row, column=1, sticky="ew", pady=2)
-        ttk.Button(root, text="Refresh devices", command=self._refresh_devices).grid(
-            row=row, column=2, sticky="w", padx=4, pady=2
+        self.device_combo.grid(row=left_row, column=1, sticky="ew", pady=2)
+        ttk.Button(left, text="Refresh", command=self._refresh_devices).grid(
+            row=left_row, column=2, sticky="w", padx=4, pady=2
         )
-        row += 1
+        left_row += 1
 
-        self._entry(root, "Tick rate Hz", "tick_rate_hz", row)
-        row += 1
+        self._entry(left, "Tick rate Hz", "tick_rate_hz", left_row)
+        left_row += 1
 
-        ttk.Label(root, text="Digital mode (held recommended)").grid(row=row, column=0, sticky="w", pady=2)
+        ttk.Label(left, text="Digital mode (held recommended)").grid(row=left_row, column=0, sticky="w", pady=2)
         ttk.Combobox(
-            root,
+            left,
             textvariable=self.vars["digital_mode"],
             values=("held", "pulse"),
             state="readonly",
-            width=30,
-        ).grid(row=row, column=1, sticky="ew", pady=2)
-        row += 1
+            width=24,
+        ).grid(row=left_row, column=1, columnspan=2, sticky="ew", pady=2)
+        left_row += 1
 
-        self._entry(root, "Pulse min Hz", "pulse_min_hz", row)
-        row += 1
-        self._entry(root, "Pulse max Hz", "pulse_max_hz", row)
-        row += 1
-        self._entry(root, "Pulse width ms", "pulse_width_ms", row)
-        row += 1
-        self._entry(root, "Focus debounce ms", "focus_debounce_ms", row)
-        row += 1
+        for label, key in (
+            ("Pulse min Hz", "pulse_min_hz"),
+            ("Pulse max Hz", "pulse_max_hz"),
+            ("Pulse width ms", "pulse_width_ms"),
+            ("Focus debounce ms", "focus_debounce_ms"),
+        ):
+            self._entry(left, label, key, left_row)
+            left_row += 1
 
         ttk.Checkbutton(
-            root,
+            left,
             text="Only arm when Rocket League is foreground",
             variable=self.vars["require_target_focus"],
-        ).grid(row=row, column=1, sticky="w", pady=2)
-        row += 1
+        ).grid(row=left_row, column=1, columnspan=2, sticky="w", pady=2)
+        left_row += 1
 
         ttk.Checkbutton(
-            root,
+            left,
             text="Log input events to stdout",
             variable=self.vars["log_events"],
-        ).grid(row=row, column=1, sticky="w", pady=2)
-        row += 1
+        ).grid(row=left_row, column=1, columnspan=2, sticky="w", pady=2)
+        left_row += 1
 
-        self._entry(root, "Disarm hotkey (+ separated)", "disarm_hotkey", row)
-        row += 1
+        self._entry(left, "Disarm hotkey (+ separated)", "disarm_hotkey", left_row)
+        left_row += 1
 
-        sections = [
+        self._section(left, left_row, "Response")
+        left_row += 1
+        for key, label in (
+            ("response.exponent", "Exponent"),
+            ("response.gain_x", "Gain X"),
+            ("response.gain_y", "Gain Y"),
+            ("response.activation_threshold", "Activation threshold"),
+        ):
+            self._entry(left, label, key, left_row)
+            left_row += 1
+
+        right_row = 0
+        for title, fields in (
             (
                 "Cursor",
-                [
+                (
                     ("cursor.sensitivity_x", "Sensitivity X"),
                     ("cursor.sensitivity_y", "Sensitivity Y"),
                     ("cursor.outer_width", "Outer width"),
                     ("cursor.outer_height", "Outer height"),
                     ("cursor.recenter_rate", "Recenter rate"),
-                ],
+                ),
             ),
             (
                 "Dead zone",
-                [
+                (
                     ("dead_zone.inner_width", "Inner width"),
                     ("dead_zone.inner_height", "Inner height"),
                     ("dead_zone.outer_width", "Outer width"),
                     ("dead_zone.outer_height", "Outer height"),
-                ],
-            ),
-            (
-                "Response",
-                [
-                    ("response.exponent", "Exponent"),
-                    ("response.gain_x", "Gain X"),
-                    ("response.gain_y", "Gain Y"),
-                    ("response.activation_threshold", "Activation threshold"),
-                ],
+                ),
             ),
             (
                 "Digital keys",
-                [
+                (
                     ("keys.left", "Left"),
                     ("keys.right", "Right"),
                     ("keys.up", "Up"),
                     ("keys.down", "Down"),
-                ],
+                ),
             ),
-        ]
-        for title, fields in sections:
-            ttk.Label(root, text=title, font=("TkDefaultFont", 10, "bold")).grid(
-                row=row, column=0, columnspan=3, sticky="w", pady=(8, 2)
-            )
-            row += 1
+        ):
+            self._section(right, right_row, title)
+            right_row += 1
             for key, label in fields:
-                self._entry(root, label, key, row)
-                row += 1
+                self._entry(right, label, key, right_row)
+                right_row += 1
 
         buttons = ttk.Frame(root)
-        buttons.grid(row=row, column=0, columnspan=3, sticky="ew", pady=(12, 4))
+        buttons.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(10, 4))
         self.start_button = ttk.Button(buttons, text="Start", command=self._start)
         self.start_button.pack(side="left")
         self.stop_button = ttk.Button(buttons, text="Stop", command=self._stop, state="disabled")
         self.stop_button.pack(side="left", padx=4)
         ttk.Button(buttons, text="Save config", command=self._save).pack(side="left", padx=4)
-        row += 1
 
         self.status = tk.StringVar(value="Stopped")
         ttk.Label(root, textvariable=self.status, foreground="#444444").grid(
-            row=row, column=0, columnspan=3, sticky="w"
+            row=2, column=0, columnspan=2, sticky="w"
         )
-        row += 1
 
         note = (
             "Dry run records events without injecting input. "
-            "SendInput keyboard uses held arrow/letter keys and requires Rocket League free look."
+            "SendInput keyboard uses held Camera Swivel keys and requires Free Look off."
         )
-        ttk.Label(root, text=note, wraplength=720, foreground="#666666").grid(
-            row=row, column=0, columnspan=3, sticky="w", pady=(8, 0)
+        ttk.Label(root, text=note, wraplength=900, foreground="#666666").grid(
+            row=3, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
 
-        root.columnconfigure(1, weight=1)
+    def _section(self, parent: ttk.Frame, row: int, title: str) -> None:
+        ttk.Label(parent, text=title, font=("TkDefaultFont", 10, "bold")).grid(
+            row=row, column=0, columnspan=3, sticky="w", pady=(8, 2)
+        )
 
     def _entry(self, parent: ttk.Frame, label: str, key: str, row: int, wide: bool = False) -> None:
         ttk.Label(parent, text=label).grid(row=row, column=0, sticky="w", pady=2)
-        entry = ttk.Entry(parent, textvariable=self.vars[key], width=70 if wide else 24)
+        entry = ttk.Entry(parent, textvariable=self.vars[key], width=28 if wide else 14)
         entry.grid(
             row=row,
             column=1,
