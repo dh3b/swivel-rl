@@ -1,0 +1,47 @@
+{
+  "backend": "dry_run",
+  "target_processes": [
+    "rocketleague.exe",
+    "rocketleague-win64-shipping.exe"
+  ],
+  "mouse_device_path_contains": "",
+  "tick_rate_hz": 120.0,
+  "digital_mode": "held",
+  "pulse_min_hz": 2.0,
+  "pulse_max_hz": 12.0,
+  "pulse_width_ms": 25.0,
+  "focus_debounce_ms": 150.0,
+  "require_target_focus": true,
+  "disarm_hotkey": [
+    "CONTROL",
+    "SHIFT",
+    "HOME"
+  ],
+  "log_events": true,
+  "cursor": {
+    "sensitivity_x": 1.0,
+    "sensitivity_y": 1.0,
+    "outer_width": 1200.0,
+    "outer_height": 600.0,
+    "recenter_rate": 5.0
+  },
+  "dead_zone": {
+    "inner_width": 160.0,
+    "inner_height": 100.0,
+    "outer_width": 1000.0,
+    "outer_height": 500.0,
+    "hysteresis": 0.1
+  },
+  "response": {
+    "exponent": 1.0,
+    "gain_x": 1.0,
+    "gain_y": 1.0,
+    "activation_threshold": 0.0
+  },
+  "keys": {
+    "left": "Q",
+    "right": "E",
+    "up": "UP",
+    "down": "DOWN"
+  }
+}
